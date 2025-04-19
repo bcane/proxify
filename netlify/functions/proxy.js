@@ -14,21 +14,28 @@ exports.handler = async (event) => {
     }
 
     try {
-        const response = await fetch(targetUrl, {
-            method,
-            headers,
-            body: method !== 'GET' ? body : undefined,
-        });
-
-        const data = await response.text();
-
-        return {
-            statusCode: response.status,
+        let response_headers = {};
+        const { data, type: originType } = await fetch(url, {
             headers: {
-                'Content-Type': response.headers.get('Content-Type'),
-            },
-            body: data,
-        };
+                ...pick(event.headers, ['cookie', 'dnt', 'referer']),
+                //'user-agent': '',
+                'x-forwarded-for': event.headers['x-forwarded-for'] || event.ip,
+                via: 'netlify'
+            }
+        }).then(async res => {
+            if (!res.ok) {
+                return {
+                    statusCode: res.status || 302
+                }
+            }
+
+            response_headers = res.headers;
+            return {
+                body: await res.buffer(),
+                type: res.headers.get("content-type") || ""
+            }
+        })
+
     } catch (error) {
         return {
             statusCode: 500,
