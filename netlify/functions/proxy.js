@@ -1,30 +1,38 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
+exports.handler = async (event) => {
+    const { method, headers, body } = event;
 
+    // Extract the target URL from query parameters
+    const targetUrl = event.queryStringParameters.url;
 
-export async function handler (event, context) {
-	try {
-		const data = JSON.parse(event.body);
-		const { pageURL } = data;
+    if (!targetUrl) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Missing target URL' }),
+        };
+    }
 
-		const res = await fetch(pageURL);
-		const htmlContent = await res.text();
+    try {
+        const response = await fetch(targetUrl, {
+            method,
+            headers,
+            body: method !== 'GET' ? body : undefined,
+        });
 
-		return {
-			statusCode: 200,
-			body: htmlContent,
-		};
-	} catch (e) {
-		let responseBody = "Something bad happened!";
-		if (e instanceof SyntaxError) {
-			responseBody = "Bad JSON!";
-		} else if (e instanceof TypeError) {
-			responseBody = "Bad URL!";
-		}
+        const data = await response.text();
 
-		return {
-			statusCode: 404,
-			body: responseBody,
-		};
-	}
-}
+        return {
+            statusCode: response.status,
+            headers: {
+                'Content-Type': response.headers.get('Content-Type'),
+            },
+            body: data,
+        };
+    } catch (error) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Internal Server Error' }),
+        };
+    }
+};
