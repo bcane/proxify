@@ -31,10 +31,20 @@ exports.handler = async (event) => {
 
             response_headers = res.headers;
             return {
-                body: await res.buffer(),
+                data: await res.buffer(),
                 type: res.headers.get("content-type") || ""
             }
         })
+
+        return {    
+                statusCode: 200,
+                body: data,
+                headers: {
+                    "content-encoding": "identity",
+                    // "x-proxy-bypass": '1',
+                    ...response_headers,
+                }
+        }
 
     } catch (error) {
         return {
