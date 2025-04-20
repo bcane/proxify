@@ -12,7 +12,8 @@ exports.handler = async (event) => {
     const options = {
         method: httpMethod,
         headers: {
-            ...headers
+            ...headers,
+            'x-forwarded-for': event.headers['x-forwarded-for'] || event.ip
         },
         body: httpMethod !== 'GET' ? JSON.stringify(event.body) : null,
     };
@@ -25,6 +26,7 @@ exports.handler = async (event) => {
             statusCode: response.status,
             headers: {
                 'Content-Type': response.headers.get('content-type'),
+                "content-encoding": "identity"
                 // Forward any other headers you want
             },
             body: responseBody,
