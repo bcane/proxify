@@ -10,9 +10,7 @@ exports.handler = async (event) => {
     const options = {
         method: httpMethod,
         headers: {
-            ...headers,
-            // Optionally, you can modify or add headers here
-            'X-Forwarded-For': event.requestContext.identity.sourceIp,
+            ...headers
         },
         body: httpMethod !== 'GET' ? JSON.stringify(event.body) : null,
     };
