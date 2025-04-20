@@ -25,8 +25,7 @@ exports.handler = async (event) => {
         return {
             statusCode: response.status,
             headers: {
-                'Content-Type': response.headers.get('content-type'),
-                "content-encoding": "identity"
+                'Content-Type': response.headers.get('content-type')
                 // Forward any other headers you want
             },
             body: responseBody,
