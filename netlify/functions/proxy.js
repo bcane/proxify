@@ -20,7 +20,7 @@ exports.handler = async (event) => {
 
     try {
         const response = await fetch(targetUrl, options);
-        const responseBody = await response.text();
+        const responseBody = await response;
 
         return {
             statusCode: response.status,
