@@ -6,7 +6,7 @@ exports.handler = async (event) => {
 
     // Construct the target URL
     
-    const targetUrl = event.queryStringParameters.url;
+    targetUrl = event.queryStringParameters.url.replace(/http:\/\/1\.1\.\d\.\d\/bmi\/(https?:\/\/)?/i, "http://");
 
     // Prepare the options for the fetch request
     const options = {
