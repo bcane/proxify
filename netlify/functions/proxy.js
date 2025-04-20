@@ -1,55 +1,38 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    const { method, headers, body } = event;
+    const { httpMethod, headers, path, queryStringParameters } = event;
 
-    // Extract the target URL from query parameters
-    const targetUrl = event.queryStringParameters.url;
+    // Construct the target URL
+    const targetUrl = `https://example.com${path}`; // Change this to your target URL
 
-    if (!targetUrl) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Missing target URL' }),
-        };
-    }
+    // Prepare the options for the fetch request
+    const options = {
+        method: httpMethod,
+        headers: {
+            ...headers,
+            // Optionally, you can modify or add headers here
+            'X-Forwarded-For': event.requestContext.identity.sourceIp,
+        },
+        body: httpMethod !== 'GET' ? JSON.stringify(event.body) : null,
+    };
 
     try {
-        let response_headers = {};
-        const { data, type: originType } = await fetch(url, {
+        const response = await fetch(targetUrl, options);
+        const responseBody = await response.text();
+
+        return {
+            statusCode: response.status,
             headers: {
-                ...pick(event.headers, ['cookie', 'dnt', 'referer']),
-                //'user-agent': '',
-                'x-forwarded-for': event.headers['x-forwarded-for'] || event.ip,
-                via: 'netlify'
-            }
-        }).then(async res => {
-            if (!res.ok) {
-                return {
-                    statusCode: res.status || 302
-                }
-            }
-
-            response_headers = res.headers;
-            return {
-                data: await res.buffer(),
-                type: res.headers.get("content-type") || ""
-            }
-        })
-
-        return {    
-                statusCode: 200,
-                body: data,
-                headers: {
-                    "content-encoding": "identity",
-                    // "x-proxy-bypass": '1',
-                    ...response_headers,
-                }
-        }
-
+                'Content-Type': response.headers.get('content-type'),
+                // Forward any other headers you want
+            },
+            body: responseBody,
+        };
     } catch (error) {
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Server Error' }),
+            body: JSON.stringify({ error: 'Internal Server Error', details: error.message }),
         };
     }
 };
