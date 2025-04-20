@@ -4,7 +4,8 @@ exports.handler = async (event) => {
     const { httpMethod, headers, path, queryStringParameters } = event;
 
     // Construct the target URL
-    const targetUrl = `https://example.com${path}`; // Change this to your target URL
+    
+    const targetUrl = event.queryStringParameters.url;
 
     // Prepare the options for the fetch request
     const options = {
